@@ -1,0 +1,46 @@
+#include "minirt.h"
+
+
+int     hit_s_sphere(t_sphere *s, t_ray *r)
+{
+    t_vec   *oc;
+    double  a;
+    double  b;
+    double  c;
+    double  discriment;
+
+    oc = vec_sub(r->orig, s->center);
+    a = vec_dot(r->dir, r->dir);
+    b = vec_dot(oc, r->dir) * 2.0;
+    c = vec_dot(oc, oc) - s->radius * s->radius;
+    free(oc);
+    discriment = b * b - 4 * a * c;
+    return ((discriment >= 0) ? TRUE : FALSE);
+}
+
+void    draw_s_sphere(t_img_data *data, t_sky_info *info, t_sphere *s)
+{
+    t_vec   *color;
+    t_sky   *my_sky;
+    t_ray   *r;
+    int     x;
+    int     y;
+
+    my_sky = init_sky(info, vec_create(0,0,0));
+    my_sky->data = data;
+    color = vec_create(1, 1, 0);
+    y = data->height;
+    while (--y >= 0)
+    {
+        x = -1;
+        while (++x < data->width)
+        {
+            r = cal_sky_ray(x, y, my_sky);
+            if (hit_s_sphere(s,r))
+                data->img[x][y] = get_color_val(color);
+            ray_free(r, FALSE);
+        }
+    }
+    free(color);
+    free_sky(my_sky, TRUE);
+}
